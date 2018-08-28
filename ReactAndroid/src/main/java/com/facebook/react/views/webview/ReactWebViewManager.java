@@ -9,6 +9,7 @@
 
 package com.facebook.react.views.webview;
 
+import android.view.View;
 import javax.annotation.Nullable;
 
 import java.io.UnsupportedEncodingException;
@@ -246,6 +247,9 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
      */
     public ReactWebView(ThemedReactContext reactContext) {
       super(reactContext);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
+      }
     }
 
     @Override
