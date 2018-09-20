@@ -31,7 +31,7 @@ public class MessageQueueThreadHandler extends Handler {
     while (!done) {
       try {
         // Delay message execution randomly to make race conditions more apparent
-        Thread.sleep((long) (Math.random() * 500));
+        Thread.sleep((long) (Math.random() * 20));
         super.dispatchMessage(msg);
         done = true;
       } catch (InterruptedException e) {
