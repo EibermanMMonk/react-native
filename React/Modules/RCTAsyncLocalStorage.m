@@ -54,12 +54,12 @@ static NSString *RCTReadFile(NSString *filePath, NSString *key, NSDictionary **e
     NSDictionary *extraData = @{@"key": RCTNullIfNil(key)};
 
     if (error) {
-      if (errorOut) *errorOut = RCTMakeError(@"Failed to read storage file.", error, extraData);
+      if (errorOut) *errorOut = RCTMakeAndLogError(@"Failed to read storage file.", error, extraData);
       return nil;
     }
 
     if (encoding != NSUTF8StringEncoding) {
-      if (errorOut) *errorOut = RCTMakeError(@"Incorrect encoding of storage file: ", @(encoding), extraData);
+      if (errorOut) *errorOut = RCTMakeAndLogError(@"Incorrect encoding of storage file: ", @(encoding), extraData);
       return nil;
     }
     return entryString;
@@ -171,6 +171,13 @@ static NSDictionary *RCTDeleteStorageDirectory()
 
 RCT_EXPORT_MODULE()
 
+- (id)init {
+	if (self = [super init]) {
+		RCTLogError(@"Extended logging enabled for %@", NSStringFromClass(self.class));
+	}
+	return self;
+}
+
 - (dispatch_queue_t)methodQueue
 {
   return RCTGetMethodQueue();
@@ -235,7 +242,7 @@ RCT_EXPORT_MODULE()
                                                attributes:nil
                                                     error:&error];
     if (error) {
-      return RCTMakeError(@"Failed to create storage directory.", error, nil);
+      return RCTMakeAndLogError(@"Failed to create storage directory.", error, nil);
     }
     RCTHasCreatedStorageDirectory = YES;
   }
@@ -244,7 +251,7 @@ RCT_EXPORT_MODULE()
     NSString *serialized = RCTReadFile(RCTGetManifestFilePath(), RCTManifestFileName, &errorOut);
     _manifest = serialized ? RCTJSONParseMutable(serialized, &error) : [NSMutableDictionary new];
     if (error) {
-      RCTLogWarn(@"Failed to parse manifest - creating new one.\n\n%@", error);
+      RCTLogError(@"Failed to parse manifest - creating new one.\n\n%@", error);
       _manifest = [NSMutableDictionary new];
     }
     _haveSetup = YES;
@@ -259,7 +266,7 @@ RCT_EXPORT_MODULE()
   [serialized writeToFile:RCTGetManifestFilePath() atomically:YES encoding:NSUTF8StringEncoding error:&error];
   NSDictionary *errorOut;
   if (error) {
-    errorOut = RCTMakeError(@"Failed to write manifest file.", error, nil);
+    errorOut = RCTMakeAndLogError(@"Failed to write manifest file.", error, nil);
     RCTAppendError(errorOut, errors);
   }
   return errorOut;
@@ -323,7 +330,7 @@ RCT_EXPORT_MODULE()
   [value writeToFile:filePath atomically:YES encoding:NSUTF8StringEncoding error:&error];
   [RCTGetCache() setObject:value forKey:key cost:value.length];
   if (error) {
-    errorOut = RCTMakeError(@"Failed to write value.", error, @{@"key": key});
+    errorOut = RCTMakeAndLogError(@"Failed to write value.", error, @{@"key": key});
   } else if (_manifest[key] != (id)kCFNull) {
     *changedManifest = YES;
     _manifest[key] = (id)kCFNull;
